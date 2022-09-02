@@ -58,3 +58,14 @@ If you want to learn more about building native executables, please consult http
 Easily start your Reactive RESTful Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+
+
+# Run Kafka Context Propagation tests
+
+With Context propagation:
+
+`mvn clean verify  -Dtest=GreetingKafkaTest`
+
+Disable mutiny decoration callbacks:
+
+`mvn clean verify  -Dtest=GreetingKafkaTest -Dmutiny.disableCallBackDecorators=true`

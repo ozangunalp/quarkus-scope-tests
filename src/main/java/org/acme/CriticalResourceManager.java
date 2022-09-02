@@ -42,4 +42,9 @@ public class CriticalResourceManager {
 		return disposerCalls.get();
 	}
 
+	public static void resetCounts() {
+		producerCalls.set(0);
+		disposerCalls.set(0);
+	}
+
 }

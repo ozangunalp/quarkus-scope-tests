@@ -13,7 +13,7 @@ public class GloballyScopedThing {
 		return cr.useIt();
 	}
 
-	public void actOnGlobalThing(String event) {
-		cr.useIt();
+	public String actOnGlobalThing(String event) {
+		return cr.useIt();
 	}
 }

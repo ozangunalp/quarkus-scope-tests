@@ -1,41 +1,91 @@
 package org.acme;
 
-import javax.inject.Inject;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.RepetitionInfo;
-
-import io.quarkus.test.junit.QuarkusTest;
-import org.eclipse.microprofile.reactive.messaging.Channel;
-import org.eclipse.microprofile.reactive.messaging.Emitter;
-
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.awaitility.Awaitility.await;
 
+import java.util.function.Supplier;
+
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kafka.InjectKafkaCompanion;
+import io.quarkus.test.kafka.KafkaCompanionResource;
+import io.smallrye.reactive.messaging.kafka.companion.KafkaCompanion;
+
 @QuarkusTest
+@QuarkusTestResource(KafkaCompanionResource.class)
 public class GreetingKafkaTest {
 
-    @Inject
-    @Channel("main-channel")
-    Emitter<String> greetingEmitter;
+    @InjectKafkaCompanion
+    KafkaCompanion companion;
 
-    @RepeatedTest(20)
-    public void testHelloKafka(RepetitionInfo repetitionInfo) {
-        final int testN = repetitionInfo.getCurrentRepetition();
+    @BeforeEach
+    void setUp() {
+        CriticalResourceManager.resetCounts();
+    }
+
+    private static boolean eventReceived(String message, Supplier<String> lastMsgSupplier) {
+        return message != null && message.equals(lastMsgSupplier.get());
+    }
+
+    @Test
+    public void testKafkaCompletionStageListener() {
+        final int testN = 1;
         final String message = "Hello " + testN;
-        greetingEmitter.send(message);
+        companion.produceStrings().fromRecords(new ProducerRecord<>("completion-stage", message));
 
         await()
                 .atMost(10000, MILLISECONDS)
-                .until(() -> eventReceived( message ) );
+                .until(() -> eventReceived(message, KafkaCompletionStageListener::lastReceivedMessage));
 
-        Assertions.assertEquals( testN, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)" );
-        Assertions.assertEquals( testN, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)" );
+        Assertions.assertEquals(testN, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
+        Assertions.assertEquals(testN, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
     }
 
-    private static boolean eventReceived(String message) {
-        return message != null && message.equals( KafkaListener.lastReceivedMessage() );
+    @Test
+    public void testKafkaUniListener() {
+        final int testN = 1;
+        final String message = "Hello " + testN;
+        companion.produceStrings().fromRecords(new ProducerRecord<>("uni", message));
+
+        await()
+                .atMost(10000, MILLISECONDS)
+                .until(() -> eventReceived(message, KafkaUniListener::lastReceivedMessage));
+
+        Assertions.assertEquals(testN, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
+        Assertions.assertEquals(testN, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
+    }
+
+    @Test
+    public void testKafkaPayloadListener() {
+        final int testN = 1;
+        final String message = "Hello " + testN;
+        companion.produceStrings().fromRecords(new ProducerRecord<>("payload", message));
+
+        await()
+                .atMost(10000, MILLISECONDS)
+                .until(() -> eventReceived(message, KafkaPayloadListener::lastReceivedMessage));
+
+        Assertions.assertEquals(testN, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
+        Assertions.assertEquals(testN, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
+    }
+
+    @Test
+    public void testKafkaBlockingPayloadListener() {
+        final int testN = 1;
+        final String message = "Hello " + testN;
+        companion.produceStrings().fromRecords(new ProducerRecord<>("blocking-payload", message));
+
+        await()
+                .atMost(10000, MILLISECONDS)
+                .until(() -> eventReceived(message, KafkaBlockingPayloadListener::lastReceivedMessage));
+
+        Assertions.assertEquals(testN, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
+        Assertions.assertEquals(testN, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
     }
 
 }
