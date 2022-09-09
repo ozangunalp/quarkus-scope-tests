@@ -34,58 +34,62 @@ public class GreetingKafkaTest {
 
     @Test
     public void testKafkaCompletionStageListener() {
-        final int testN = 1;
-        final String message = "Hello " + testN;
-        companion.produceStrings().fromRecords(new ProducerRecord<>("completion-stage", message));
+        for (int testN = 0; testN < 20; testN++) {
+            final String message = "Hello " + testN;
+            companion.produceStrings().fromRecords(new ProducerRecord<>("completion-stage", message));
 
-        await()
-                .atMost(10000, MILLISECONDS)
-                .until(() -> eventReceived(message, KafkaCompletionStageListener::lastReceivedMessage));
+            await()
+                    .atMost(10000, MILLISECONDS)
+                    .until(() -> eventReceived(message, KafkaCompletionStageListener::lastReceivedMessage));
 
-        Assertions.assertEquals(testN, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
-        Assertions.assertEquals(testN, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
+            Assertions.assertEquals(testN + 1, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
+            Assertions.assertEquals(testN + 1, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
+        }
     }
 
     @Test
     public void testKafkaUniListener() {
-        final int testN = 1;
-        final String message = "Hello " + testN;
-        companion.produceStrings().fromRecords(new ProducerRecord<>("uni", message));
+        for (int testN = 0; testN < 20; testN++) {
+            final String message = "Hello " + testN;
+            companion.produceStrings().fromRecords(new ProducerRecord<>("uni", message));
 
-        await()
-                .atMost(10000, MILLISECONDS)
-                .until(() -> eventReceived(message, KafkaUniListener::lastReceivedMessage));
+            await()
+                    .atMost(10000, MILLISECONDS)
+                    .until(() -> eventReceived(message, KafkaUniListener::lastReceivedMessage));
 
-        Assertions.assertEquals(testN, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
-        Assertions.assertEquals(testN, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
+            Assertions.assertEquals(testN + 1, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
+            Assertions.assertEquals(testN + 1, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
+        }
     }
 
     @Test
     public void testKafkaPayloadListener() {
-        final int testN = 1;
-        final String message = "Hello " + testN;
-        companion.produceStrings().fromRecords(new ProducerRecord<>("payload", message));
+        for (int testN = 0; testN < 20; testN++) {
+            final String message = "Hello " + testN;
+            companion.produceStrings().fromRecords(new ProducerRecord<>("payload", message));
 
-        await()
-                .atMost(10000, MILLISECONDS)
-                .until(() -> eventReceived(message, KafkaPayloadListener::lastReceivedMessage));
+            await()
+                    .atMost(10000, MILLISECONDS)
+                    .until(() -> eventReceived(message, KafkaPayloadListener::lastReceivedMessage));
 
-        Assertions.assertEquals(testN, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
-        Assertions.assertEquals(testN, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
+            Assertions.assertEquals(testN + 1, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
+            Assertions.assertEquals(testN + 1, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
+        }
     }
 
     @Test
     public void testKafkaBlockingPayloadListener() {
-        final int testN = 1;
-        final String message = "Hello " + testN;
-        companion.produceStrings().fromRecords(new ProducerRecord<>("blocking-payload", message));
+        for (int testN = 0; testN < 20; testN++) {
+            final String message = "Hello " + testN;
+            companion.produceStrings().fromRecords(new ProducerRecord<>("blocking-payload", message));
 
-        await()
-                .atMost(10000, MILLISECONDS)
-                .until(() -> eventReceived(message, KafkaBlockingPayloadListener::lastReceivedMessage));
+            await()
+                    .atMost(10000, MILLISECONDS)
+                    .until(() -> eventReceived(message, KafkaBlockingPayloadListener::lastReceivedMessage));
 
-        Assertions.assertEquals(testN, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
-        Assertions.assertEquals(testN, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
+            Assertions.assertEquals(testN + 1, CriticalResourceManager.producerCallsCount(), "Mismatch in invocation number of producers (??)");
+            Assertions.assertEquals(testN + 1, CriticalResourceManager.disposerCallsCount(), "Mismatch in invocation number of disposers (leak?)");
+        }
     }
 
 }
