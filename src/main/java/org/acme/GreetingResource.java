@@ -10,6 +10,7 @@ import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.Context;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.impl.EventLoopContext;
 import io.vertx.core.impl.VertxInternal;
@@ -24,7 +25,11 @@ public class GreetingResource {
     @Inject
     Vertx vertx;
 
-    EventLoopContext context;
+    Context context;
+
+    void startup(@Observes StartupEvent startupEvent) {
+        context = vertx.getOrCreateContext().getDelegate();
+    }
 
     @GET
     @Path("/actOnGlobalThingCustomContext")
@@ -41,36 +46,19 @@ public class GreetingResource {
         });
     }
 
-//    @GET
-//    @Path("/actOnGlobalThingCustomContextActivateRequestContext")
-//    @Produces(MediaType.TEXT_PLAIN)
-//    public String actOnGlobalThingCustomContextActivateRequestContext() {
-//        return Uni.createFrom().<String>emitter(e -> {
-//            context.runOnContext(x -> {
-//                try {
-//                    e.complete(actWithRequest("item"));
-//                } catch (Throwable t) {
-//                    e.fail(t);
-//                }
-//            });
-//        }).await().indefinitely();
-//    }
-
     @GET
     @Path("/actOnGlobalThingCustomContextActivateRequestContext")
     @Produces(MediaType.TEXT_PLAIN)
-    public Uni<String> actOnGlobalThingCustomContextActivateRequestContext() {
-        return Uni.createFrom().emitter(e -> {
+    public String actOnGlobalThingCustomContextActivateRequestContext() {
+        return Uni.createFrom().<String>emitter(e -> {
             context.runOnContext(x -> {
-                context.runOnContext(y -> {
                 try {
                     e.complete(actWithRequest("item"));
                 } catch (Throwable t) {
                     e.fail(t);
                 }
-                });
             });
-        });
+        }).await().indefinitely();
     }
 
     @ActivateRequestContext
